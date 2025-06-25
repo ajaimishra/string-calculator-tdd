@@ -34,7 +34,15 @@ describe('StringCalculator Test cases', () => {
     expect(calculator.add('//#\n4#5#6')).toBe(15);
   });
 
+  it('should throw exception for negative numbers', () => {
+    expect(() => calculator.add('-1')).toThrow('negative numbers not allowed -1');
+    expect(() => calculator.add('1,-2')).toThrow('negative numbers not allowed -2');
+  });
 
+  it('should show all negative numbers in exception message', () => {
+    expect(() => calculator.add('-1,2,-3')).toThrow('negative numbers not allowed -1, -3');
+    expect(() => calculator.add('//;\n-1;2;-3;-4')).toThrow('negative numbers not allowed -1, -3, -4');
+  });
 
 
 })
