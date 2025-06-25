@@ -15,9 +15,11 @@ describe('StringCalculator Test cases', () => {
     expect(calculator.add('15')).toBe(15)
   })
 
-  it('Should return sum of two numbers seprated by comma', () => {
+  it('Should return sum of two or more than two numbers seprated by comma', () => {
     expect(calculator.add('1,2')).toBe(3)
     expect(calculator.add('3,4')).toBe(7)
+    expect(calculator.add('1,2,3')).toBe(6)
+    expect(calculator.add('1,2,3,4,5,6,7,8')).toBe(36)
   })
 
 })
