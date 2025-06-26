@@ -82,7 +82,7 @@ describe('StringCalculator Test cases', () => {
     it('should support delimiters of any length with brackets', () => {
       expect(calculator.add('//[***]\n1***2***3')).toBe(6);
       expect(calculator.add('//[;;]\n1;;2;;3')).toBe(6);
-      expect(calculator.add('//[123]\n11234512356')).toBe(12);
+      expect(calculator.add('//[123]\n112351236')).toBe(12);
     });
 
     it('should support multiple delimiters', () => {

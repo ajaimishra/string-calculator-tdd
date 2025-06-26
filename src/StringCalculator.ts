@@ -8,8 +8,8 @@ export class StringCalculator {
   add(numbers: string): number {
     if (this.isEmpty(numbers)) return 0;
 
-    const { delimiter, numberString } = this.extractDelimeterAndNumbers(numbers);
-    const numberArray = this.parseNumbers(numberString, delimiter);
+    const { delimiters, numberString } = this.extractDelimeterAndNumbers(numbers);
+    const numberArray = this.parseNumbers(numberString, delimiters);
     this.validateNumbers(numberArray);
     const filteredNumbers = this.filterValidNumbers(numberArray)
     return this.sumNumbers(filteredNumbers);
@@ -20,27 +20,40 @@ export class StringCalculator {
     return numbers.trim() === '';
   }
 
-  private extractDelimeterAndNumbers(numbers: string): { delimiter: string, numberString: string } {
+  private extractDelimeterAndNumbers(numbers: string): { delimiters: string[], numberString: string } {
 
     if (this.hasCustomDelimiter(numbers)) {
       const delimeterEndIndex = numbers.indexOf(StringCalculator.NEWLINE_DELIMITER);
-      const delimiter = numbers.slice(StringCalculator.CUSTOM_DELIMITER_PREFIX.length, delimeterEndIndex);
+      const delimiterSection = numbers.slice(StringCalculator.CUSTOM_DELIMITER_PREFIX.length, delimeterEndIndex);
       const numberString = numbers.substring(delimeterEndIndex + 1);
-      return { delimiter, numberString }
+      const delimiters = this.parseDelimiters(delimiterSection);
+      return { delimiters, numberString }
     }
-    return { delimiter: StringCalculator.DEFAULT_DELIMITER, numberString: numbers }
+    return { delimiters: [StringCalculator.DEFAULT_DELIMITER], numberString: numbers }
 
   }
 
 
-  private parseNumbers(numbers: string, delimiter: string): number[] {
-    const sanetizedNumbers = this.normalizeDelimiters(numbers, delimiter);
-    return this.convertToNumbers(sanetizedNumbers, delimiter);
+  private parseNumbers(numbers: string, delimiters: string[]): number[] {
+    let processedNumbers = this.normalizeNewlines(numbers);
+
+    // Replace all delimiters with the first delimiter for uniform processing
+    const primaryDelimiter = delimiters[0];
+    for (let i = 1; i < delimiters.length; i++) {
+      processedNumbers = this.replaceAll(processedNumbers, delimiters[i], primaryDelimiter);
+    }
+
+    return this.convertToNumbers(processedNumbers, primaryDelimiter);
   }
 
-  private normalizeDelimiters(numbers: string, delimiter: string): string {
-    return numbers.replace(new RegExp(StringCalculator.NEWLINE_DELIMITER, 'g'), delimiter);
+  private normalizeNewlines(numbers: string): string {
+    return numbers.replace(new RegExp(StringCalculator.NEWLINE_DELIMITER, 'g'), StringCalculator.DEFAULT_DELIMITER);
   }
+
+  private replaceAll(str: string, find: string, replace: string): string {
+    return str.split(find).join(replace);
+  }
+
 
   private convertToNumbers(numbers: string, delimiter: string): number[] {
     return numbers
@@ -75,5 +88,23 @@ export class StringCalculator {
 
   private filterValidNumbers(numbers: number[]): number[] {
     return numbers.filter(num => num <= StringCalculator.MAX_ALLOWED_NUMBER);
+  }
+
+  private parseDelimiters(delimiterSection: string): string[] {
+    // Handle bracketed delimiters: [***] or multiple [*][%]
+    if (delimiterSection.includes('[') && delimiterSection.includes(']')) {
+      const bracketRegex = /\[([^\]]+)\]/g;
+      const delimiters: string[] = [];
+      let match;
+
+      while ((match = bracketRegex.exec(delimiterSection)) !== null) {
+        delimiters.push(match[1]);
+      }
+
+      return delimiters.length > 0 ? delimiters : [delimiterSection];
+    }
+
+    // Single character delimiter
+    return [delimiterSection];
   }
 }
