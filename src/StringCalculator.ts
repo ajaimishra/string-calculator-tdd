@@ -1,37 +1,73 @@
 export class StringCalculator {
 
+  private static readonly DEFAULT_DELIMITER = ',';
+  private static readonly CUSTOM_DELIMITER_PREFIX = '//';
+  private static readonly NEWLINE_DELIMITER = '\n';
+
   add(numbers: string): number {
-    if (numbers.trim() === '') return 0;
+    if (this.isEmpty(numbers)) return 0;
 
-    const { delimeter, numberString } = this.extractDelimeterAndNumbers(numbers);
-    const numbersArray = this.parseNumbers(numberString, delimeter);
-    this.validateNumbers(numbersArray);
-    return numbersArray.reduce((acc, num) => acc + num, 0)
+    const { delimiter, numberString } = this.extractDelimeterAndNumbers(numbers);
+    const numberArray = this.parseNumbers(numberString, delimiter);
+    this.validateNumbers(numberArray);
+    return this.sumNumbers(numberArray);
 
   }
 
-  private extractDelimeterAndNumbers(numbers: string): { delimeter: string, numberString: string } {
+  private isEmpty(numbers: string): boolean {
+    return numbers.trim() === '';
+  }
 
-    if (numbers.startsWith('//')) {
-      const delimeterEndIndex = numbers.indexOf('\n');
-      const delimeter = numbers.slice(2, delimeterEndIndex);
+  private extractDelimeterAndNumbers(numbers: string): { delimiter: string, numberString: string } {
+
+    if (this.hasCustomDelimiter(numbers)) {
+      const delimeterEndIndex = numbers.indexOf(StringCalculator.NEWLINE_DELIMITER);
+      const delimiter = numbers.slice(StringCalculator.CUSTOM_DELIMITER_PREFIX.length, delimeterEndIndex);
       const numberString = numbers.substring(delimeterEndIndex + 1);
-      return { delimeter, numberString }
+      return { delimiter, numberString }
     }
-    return { delimeter: ',', numberString: numbers }
+    return { delimiter: StringCalculator.DEFAULT_DELIMITER, numberString: numbers }
 
   }
 
 
-  private parseNumbers(numbers: string, delimeter: string): number[] {
-    const sanetizedNumbers = numbers.replace(/\n/g, delimeter)
-    return sanetizedNumbers.split(delimeter).map(num => parseInt(num.trim()));
+  private parseNumbers(numbers: string, delimiter: string): number[] {
+    const sanetizedNumbers = this.normalizeDelimiters(numbers, delimiter);
+    return this.convertToNumbers(sanetizedNumbers, delimiter);
+  }
+
+  private normalizeDelimiters(numbers: string, delimiter: string): string {
+    return numbers.replace(new RegExp(StringCalculator.NEWLINE_DELIMITER, 'g'), delimiter);
+  }
+
+  private convertToNumbers(numbers: string, delimiter: string): number[] {
+    return numbers
+      .split(delimiter)
+      .map(num => parseInt(num.trim()))
+      .filter(num => !isNaN(num));
   }
 
   private validateNumbers(numbers: number[]): void {
-    const negativeNumbers = numbers.filter(num => num < 0);
+    const negativeNumbers = this.findNegativeNumbers(numbers);
     if (negativeNumbers.length) {
-      throw new Error(`negative numbers not allowed ${negativeNumbers.join(', ')}`)
+      this.throwNegativeNumbersException(negativeNumbers);
     }
+  }
+
+  private findNegativeNumbers(numbers: number[]): number[] {
+    return numbers.filter(num => num < 0);
+  }
+
+  private hasCustomDelimiter(numbers: string): boolean {
+    return numbers.startsWith(StringCalculator.CUSTOM_DELIMITER_PREFIX);
+  }
+
+  private throwNegativeNumbersException(negativeNumbers: number[]): never {
+    const negativeNumbersList = negativeNumbers.join(', ');
+    throw new Error(`negative numbers not allowed ${negativeNumbersList}`);
+  }
+
+  private sumNumbers(numbers: number[]): number {
+    return numbers.reduce((sum, num) => sum + num, 0);
   }
 }
