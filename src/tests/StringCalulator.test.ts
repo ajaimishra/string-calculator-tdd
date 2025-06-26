@@ -60,6 +60,22 @@ describe('StringCalculator Test cases', () => {
       expect(() => calculator.add('//;\n-1;2;-3;-4')).toThrow('negative numbers not allowed -1, -3, -4');
     });
   })
+
+  describe('Number filtering', () => {
+    it('should ignore number bigger than 1000', () => {
+      expect(calculator.add('1,1002,3')).toBe(4)
+      expect(calculator.add('999,1002,1000')).toBe(1999)
+    });
+
+    it('should ignore numbers bigger than 1000 with custom delimiters', () => {
+      expect(calculator.add('//;\n2;1001')).toBe(2);
+      expect(calculator.add('//[***]\n1000***1001***2')).toBe(1002);
+    });
+
+    it('should ignore numbers bigger than 1000 with multiple delimiters', () => {
+      expect(calculator.add('//[*][%]\n2*1001%3')).toBe(5);
+    });
+  })
   describe('Edge cases', () => {
     it('should handle extra spaces', () => {
       expect(calculator.add(' 1 , 2 ')).toBe(3);
