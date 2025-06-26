@@ -3,6 +3,7 @@ export class StringCalculator {
   private static readonly DEFAULT_DELIMITER = ',';
   private static readonly CUSTOM_DELIMITER_PREFIX = '//';
   private static readonly NEWLINE_DELIMITER = '\n';
+  private static readonly MAX_ALLOWED_NUMBER = 1000;
 
   add(numbers: string): number {
     if (this.isEmpty(numbers)) return 0;
@@ -10,7 +11,8 @@ export class StringCalculator {
     const { delimiter, numberString } = this.extractDelimeterAndNumbers(numbers);
     const numberArray = this.parseNumbers(numberString, delimiter);
     this.validateNumbers(numberArray);
-    return this.sumNumbers(numberArray);
+    const filteredNumbers = this.filterValidNumbers(numberArray)
+    return this.sumNumbers(filteredNumbers);
 
   }
 
@@ -69,5 +71,9 @@ export class StringCalculator {
 
   private sumNumbers(numbers: number[]): number {
     return numbers.reduce((sum, num) => sum + num, 0);
+  }
+
+  private filterValidNumbers(numbers: number[]): number[] {
+    return numbers.filter(num => num <= StringCalculator.MAX_ALLOWED_NUMBER);
   }
 }
